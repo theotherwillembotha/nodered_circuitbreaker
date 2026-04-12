@@ -1,0 +1,175 @@
+
+
+<div template-section="onIncludeOnce">
+    <script src="resources/@theotherwillembotha/nodered_circuitbreaker/editorLanguageExtension.js"></script>
+    <style>
+        .node_label_white {
+            fill:white
+        }
+    </style>
+
+    <script type="text/javascript">
+        let scriptTemplate = `
+            /**
+             * Represents the message object that is passed into this node.
+             */
+            interface Message {
+                [key:string]:any;
+            }
+
+            enum BreakerState {
+                Open = "Open",
+                Closed = "Closed"
+            }
+        
+            /**
+             * Represents the breaker object that this fault is linked to.
+             */
+            interface Breaker {
+                /**
+                 * Get the context that is attached to the breaker.
+                 * @returns the attached breaker context.
+                 */
+                context():BreakerContext;
+
+                /**
+                 * returns the state of the breaker
+                 * @returns the state of the breaker.
+                 */
+                state():BreakerState;
+                isOpen():boolean;
+                isClosed():boolean;
+                reset():boolean;
+                trip():boolean;
+            }
+
+            /**
+             *  Represents a context on the breaker where properties can be set or removed. 
+             */
+            interface BreakerContext {
+                /**
+                 * Gets a particular context value from the BreakerContext.
+                 * @param id - The id of the property to retrieve.
+                 * @param defaultValue - The optional default for te context property if it does not exist.
+                 * @returns a value if it exists, or undefiend otherwise.
+                 */
+                get<T>(id:string, defaultValue?:T): T;
+
+                /**
+                 * Sets a particular context value in the BreakerContext.
+                 * @param id - The id of the property to set.
+                 * @param value - The default for te context property if it does not exist.
+                 * @returns the value that has just been set to the id.
+                 */
+                set<T>(id:string, value:T): T;
+            }
+
+            async function(breaker:Breaker, message:Message) {
+            \${script}
+            }
+        `;
+
+        let scriptLanguage = ScriptEditorLanguageManager.createLanguage(monaco, scriptTemplate);
+
+    </script>
+</div>
+
+<script type="text/javascript" template-section="onCompose">
+    node
+        .addDefault("name", { value:"CircuitBreakerState Example", required:true})
+        .addDefault("circuitbreakerconfig", {type:"CircuitBreakerConfigNode", required:true})
+        .addDefault("action", {value:"Reset", required:true})
+        .addDefault("script", {value:"console.log(message, breaker)"})
+        .setIcon("circuitrbreaker.png")
+        .setPaletteLabel("Circuit Breaker State")
+        .setLabelStyle("node_label_white")
+        .setLabel(function() {return this.name })
+        .setColor("#1D7874")
+        .setInput("input")
+        .addOutputs("output");
+</script>
+
+<script type="text/javascript" template-section="onIncludeEditPrepare">
+{    
+    let node = this;
+
+    let selectActionType = function(action){
+        if(action === "Script"){
+            $("#CircuitBreakerStateScript").show();
+        }
+        else{
+            $("#CircuitBreakerStateScript").hide();
+        }
+    }
+
+    let nodeAction = $("#node-input-action");
+    nodeAction.typedInput({type:"action", types:[{
+        value: "action",
+        options: [
+            { value: "Reset", label: "Reset"},
+            { value: "Trip", label: "Trip"},
+            { value: "Script", label: "Script"}
+        ]
+    }]});
+
+    nodeAction.on('change', () => selectActionType(nodeAction.val()));
+    selectActionType(nodeAction.val());
+
+    scriptLanguage.then(language => {
+        node.scriptEditor = monaco.editor.create(document.getElementById('node-input-script-editor'), {
+            value: (node.script === undefined) ? "console.log(message, breaker)" :node.script,
+            language: language.getName(),
+            automaticLayout: true,
+            wordBasedSuggestions: "currentDocument",
+        });
+    })
+}
+</script>
+
+<script type="text/javascript" template-section="onIncludeEditSave">
+{
+    let node = this;
+    node.script = node.scriptEditor.getValue();
+    delete node.scriptEditor;
+}
+</script>
+
+<script type="text/javascript" template-section="IncludeEditCancel">
+{
+    let node = this;
+    delete node.scriptEditor;
+}
+</script>
+
+<script type="text/html" template-section="onIncludeEditForm">
+    <div class="form-row">
+        <label for="node-input-name"class="towb_editorlabel" ><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" />
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-circuitbreakerconfig"class="towb_editorlabel" ><i class="fa fa-tag"></i>Linked Circuit Breaker</label>
+        <input type="text" id="node-input-circuitbreakerconfig" />
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-action"><i class="fa fa-tag"></i> On Message</label>
+        <input type="text" id="node-input-action" />
+    </div>
+
+    <div id="CircuitBreakerStateScript">
+        <div class="form-row">
+            <label for="node-input-script-editor" class="towb_editorlabel" ><i class="fa fa-tag"></i>Script Action</label>
+            <div style="height: 200px;" class="node-text-editor" id="node-input-script-editor"></div>
+        </div>
+    </div>
+</script>
+
+<script type="text/markdown" template-section="onIncludeDocumentation">
+Circuitbreaker State node for nodered.
+
+### Inputs
+: *name*            (string) : An easily idfentifiable name for the circuit breaker.
+: *circuitbreaker*  (Circuit Breaker Config) : the circuit breaker that this node is linked to.
+</script>
+

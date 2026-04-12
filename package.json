@@ -1,0 +1,30 @@
+{
+  "name": "@theotherwillembotha/nodered_circuitbreaker",
+  "version": "1.0.0",
+  "description": "A circuitbreaker plugin for nodered",
+  "exports": "./build/index.js",
+  "author": "Willem Botha",
+  "license": "ISC",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run clean && tsc && npm run generate-nodes && npm run copy-files",
+    "clean": "rm -rf ./build",
+    "generate-nodes": "node build/GenerateNodes.js",
+    "copy-files": "cp -r ./icons ./build/"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "@theotherwillembotha/nodered_plugincore": "../nodered_plugincore",
+    "@types/node": "^22.15.16",
+    "@types/node-red": "~1.3.5"
+  },
+  "node-red": {
+    "nodes": {
+      "circuitbreaker": "./build/Nodes.js"
+    },
+    "plugins": {
+      "circuitbreaker": "./build/Plugins.js"
+    }
+  }
+}

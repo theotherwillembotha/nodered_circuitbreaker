@@ -1,0 +1,55 @@
+
+<script type="text/javascript" template-section="onCompose">
+    node
+        .addDefault("name", { value:"CircuitBreakerEvent Example", required:true})
+        .addDefault("circuitbreakerconfig", {type:"CircuitBreakerConfigNode", required:true})
+        .setIcon("circuitrbreaker.png")
+        .setPaletteLabel("Circuit Breaker Event")
+        .setLabelStyle("node_label_white")
+        .setLabel(function() {return this.name })
+        .setColor("#1D7874")
+        .addOutputs("trip", "reset")
+</script>
+
+<div template-section="onIncludeOnce">
+    <style>
+        .node_label_white {
+            fill:white
+        }
+    </style>
+</div>
+
+<script type="text/javascript" template-section="onIncludeEditPrepare">
+{    
+    let node = this;
+
+}
+</script>
+
+<script type="text/javascript" template-section="onIncludeEditSave">
+{
+    let node = this;
+
+}
+</script>
+
+<script type="text/html" template-section="onIncludeEditForm">
+    <div class="form-row">
+        <label for="node-input-name"class="towb_editorlabel" ><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" />
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-circuitbreakerconfig"class="towb_editorlabel" ><i class="fa fa-tag"></i>Linked Circuit Breaker</label>
+        <input type="text" id="node-input-circuitbreakerconfig" />
+    </div>
+</script>
+
+<script type="text/markdown" template-section="onIncludeDocumentation">
+Circuitbreaker Event node for nodered.
+
+### Inputs
+: *name*            (string) : An easily idfentifiable name for the circuit breaker.
+: *circuitbreaker*  (Circuit Breaker Config) : the circuit breaker that this node is linked to.
+</script>
+

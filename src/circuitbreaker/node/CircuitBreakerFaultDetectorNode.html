@@ -1,0 +1,258 @@
+<div template-section="onIncludeOnce">
+<!--script src="resources/@theotherwillembotha/nodered_circuitbreaker/editorLanguageExtension.js"></script-->
+<script src="resources/@theotherwillembotha/nodered_circuitbreaker/editorLanguageExtension.js"></script>
+
+<script type="text/javascript" >
+
+//     let template = `
+// /**
+//  * Represents a message object with a name property
+//  * @example
+//  * const msg = new Message("John");
+//  * if (msg.foo()) {
+//  *   console.log(msg.toString());
+//  * }
+//  */
+// class Message {
+//     /**
+//      * The name associated with this message
+//      */
+//     name: string;
+    
+//     /**
+//      * Creates a new Message instance
+//      * @param name - The name associated with this message
+//      * @throws {Error} If name is empty
+//      */
+//     constructor(name: string) {}
+    
+//     /**
+//      * Checks if the message is valid
+//      * @returns True if the message is valid, false otherwise
+//      * @remarks This method validates the message content
+//      * @see {@link toString} for string representation
+//      */
+//     foo(): boolean { return false }
+    
+//     /**
+//      * Converts the message to a string representation
+//      * @returns A string representation of the message
+//      * @example
+//      * const str = message.toString();
+//      * console.log(str);
+//      */
+//     toString(): string { return "" }
+// }
+
+// function(message: Message) {
+// \${script}
+// }`;
+
+    let faultTemplate = `
+        /**
+         * Represents a message object received by this node.
+         */
+        class Message {
+            [key: string]: any;
+        }
+
+        async function(message: Message) {
+        \${script}
+        }
+    `;
+
+    let faultScriptLangunage = ScriptEditorLanguageManager.createLanguage(monaco, faultTemplate);
+
+    let tripTemplate = `
+        /**
+         * Represents the breaker object that this fault is linked to.
+         */
+        interface Breaker {
+            context():BreakerContext;
+        }
+
+        /**
+         *  Represents a context on the breaker where properties can be set or removed. 
+         */
+        interface BreakerContext {
+            /**
+             * Gets a particular context value from the BreakerContext.
+             * @param id - The id of the property to retrieve.
+             * @param defaultValue - The optional default for te context property if it does not exist.
+             * @returns a value if it exists, or undefiend otherwise.
+             */
+            get<T>(id:string, defaultValue?:T): T;
+
+            /**
+             * Sets a particular context value in the BreakerContext.
+             * @param id - The id of the property to set.
+             * @param value - The default for te context property if it does not exist.
+             * @returns the value that has just been set to the id.
+             */
+            set<T>(id:string, value:T): T;
+        }
+
+        async function(breaker:Breaker) {
+        \${script}
+        }
+    `;
+
+    let tripScriptLanguage = ScriptEditorLanguageManager.createLanguage(monaco, tripTemplate);
+
+</script>
+</div>
+
+
+<script type="text/javascript" template-section="onCompose">
+
+    let sampleFaultFunction = function(message){
+        console.log(message.statusCode)
+        return (message.statusCode === undefined || mesasge.statusCode > 400);
+    };
+
+    let extractFunctionBody = function(funct){
+        return funct.toString()
+            .replace(/^function\s*\(.*?\)\s*\{/, '')    // Remove "function(params){"
+            .replace(/\}$/, '')                         // Remove closing "}"
+            .trim()
+            .split("\n").map(line => line.replace(/^\s{4}/, ''))
+            .join("\\n");
+    }
+
+    node
+        .addDefault("name", { value:"CircuitBreaker Fault Detector Example", required:true})
+        .addDefault("circuitbreakerconfig", {type:"CircuitBreakerConfigNode", required:true})
+        .addDefault("faultFunction", {required:true})
+        .addDefault("tripFunction", {required:true})
+        .setIcon("circuitrbreaker.png")
+        .setPaletteLabel("Circuit Breaker Fault Detector")
+        .setLabelStyle("node_label_white")
+        .setLabel(function() {return this.name })
+        .setColor("#1D7874")
+        .setInput("input")
+        .addOutputs("output", "fault")
+</script>
+
+<div template-section="onIncludeOnce">
+    <style>
+        .node_label_white {
+            fill:white
+        }
+    </style>
+</div>
+
+<script type="text/javascript" template-section="onIncludeEditPrepare">
+{   
+    let node = this;
+
+    // create the faultEditor.
+    let faultSample = normalizeIndentation(`
+        return 
+            message.errorCode && 
+            message.errorCode >= 400;
+    `);
+
+    faultScriptLangunage.then(language => {
+        node.faultEditor = monaco.editor.create(document.getElementById('node-input-faultFunction-editor'), {
+            value: (node.faultFunction === undefined) ? faultSample :node.faultFunction,
+            language: language.getName(),
+            automaticLayout: true,
+            wordBasedSuggestions: "currentDocument",
+        });
+    })
+
+    // create the faultEditor.
+    let tripSample = normalizeIndentation(`
+        /** @type {number[]} */
+        let buffer = breaker.context().get("buffer", []);
+        let interval = 10*1000;     // 10 seconds.
+        let capacity = 5;           // maximum number of failures.
+        let time = new Date().getTime();
+        buffer.push(time);
+        buffer = buffer.filter(item => item + interval >= time);
+        breaker.context().set("buffer", buffer);
+        return (buffer.length >= capacity);
+    `);
+
+    tripScriptLanguage.then(language => {
+        node.tripEditor = monaco.editor.create(document.getElementById('node-input-tripFunction-editor'), {
+            value: (node.tripFunction === undefined) ? tripSample :node.tripFunction,
+            language: language.getName(),
+            automaticLayout: true,
+            wordBasedSuggestions: "currentDocument",
+        });
+    })
+
+    function normalizeIndentation(code) {
+        const lines = code.split('\n');
+        
+        // Filter out empty lines for finding minimum indent
+        const nonEmptyLines = lines.filter(line => line.trim().length > 0);
+        
+        if (nonEmptyLines.length === 0) return code;
+        
+        // Find the minimum indentation level
+        const minIndent = Math.min(
+            ...nonEmptyLines.map(line => line.match(/^\s*/)[0].length)
+        );
+        
+        // Remove that amount of indentation from all lines
+        return lines.map(line => line.slice(minIndent)).join('\n');
+    }
+}
+</script>
+
+<script type="text/javascript" template-section="onIncludeEditSave">
+{
+    let node = this;
+
+    node.faultFunction = node.faultEditor.getValue();
+    delete node.faultEditor;
+
+    node.tripFunction = node.tripEditor.getValue();
+    delete node.tripEditor;
+}
+</script>
+
+<script type="text/javascript" template-section="IncludeEditCancel">
+{
+    let node = this;
+
+    delete node.faultEditor;
+    delete node.tripEditor;
+}
+</script>
+
+<script type="text/html" template-section="onIncludeEditForm">
+    <div class="form-row">
+        <label for="node-input-name" class="towb_editorlabel" ><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-input-name" />
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-circuitbreakerconfig" class="towb_editorlabel" ><i class="fa fa-tag"></i>Circuit Breaker</label>
+        <input type="text" id="node-input-circuitbreakerconfig" />
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-faultFunction-editor" class="towb_editorlabel" ><i class="fa fa-tag"></i>Fault Function</label>
+        <div style="height: 200px;" class="node-text-editor" id="node-input-faultFunction-editor"></div>
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-tripFunction-editor" class="towb_editorlabel" ><i class="fa fa-tag"></i>Trip Function</label>
+        <div style="height: 200px;" class="node-text-editor" id="node-input-tripFunction-editor"></div>
+    </div>
+
+    <div id="myMonacoContainer">
+    </div>
+</script>
+
+<script type="text/markdown" template-section="onIncludeDocumentation">
+Circuitbreaker node for nodered.
+
+### Inputs
+: *name*            (string) : An easily idfentifiable name for the circuit breaker.
+: *circuitbreaker*  (Circuit Breaker Config) : the circuit breaker that this node is linked to.
+</script>
+

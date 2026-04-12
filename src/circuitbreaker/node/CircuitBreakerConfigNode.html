@@ -1,0 +1,49 @@
+
+<script type="text/javascript" template-section="onCompose">
+    node
+        .addDefault("name", { value:"CircuitBeaker Config Example", required:true})
+        .addDefault("defaultOpen", {type:"boolean", required:true})
+        .setPaletteLabel("CircuitBeaker Config Node")
+        .setLabel(function() {return this.name })
+</script>
+
+<div template-section="onIncludeOnce">
+    <style>
+        .theotherwillembotha-compact-table li {
+            padding-top: 4px;
+            padding-bottom: 4px;
+        }
+    </style>
+</div>
+
+<script type="text/javascript" template-section="onIncludeEditPrepare">
+{
+    let node = this;
+}
+</script>
+
+<script type="text/javascript" template-section="onIncludeEditSave">
+{
+    let node = this;
+
+}
+</script>
+
+<script type="text/html" template-section="onIncludeEditForm">
+    <div class="form-row">
+        <label for="{{defaults.name}}"><i class="fa fa-tag"></i> Name</label>
+        <input type="text" id="node-config-input-name" />
+    </div>
+
+    <div class="form-row">
+        <input type="checkbox" id="node-config-input-defaultOpen" style="margin:8px 0 10px 102px; width:20px;" />
+        <label style="width:auto" for="node-config-input-defaultOpen"><span>Open on Startup</span></label>
+    </div>
+
+</script>
+
+<script type="text/markdown" template-section="onIncludeDocumentation">
+Configuration node for Circuit Breaker Integration
+
+
+</script>
