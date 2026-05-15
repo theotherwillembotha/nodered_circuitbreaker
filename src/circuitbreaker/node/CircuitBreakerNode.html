@@ -34,20 +34,34 @@
 
 <script type="text/html" template-section="onIncludeEditForm">
     <div class="form-row">
-        <label for="node-input-name" class="towb_editorlabel" ><i class="fa fa-tag"></i> Name</label>
+        <label for="node-input-name" class="towb_editorlabel"><i class="fa fa-font"></i> Name</label>
         <input type="text" id="node-input-name" />
     </div>
 
     <div class="form-row">
-        <label for="node-input-circuitbreakerconfig" class="towb_editorlabel" ><i class="fa fa-tag"></i>Circuit Breaker</label>
+        <label for="node-input-circuitbreakerconfig" class="towb_editorlabel"><i class="fa fa-bolt"></i> Circuit Breaker</label>
         <input type="text" id="node-input-circuitbreakerconfig" />
     </div>
 </script>
 
 <script type="text/markdown" template-section="onIncludeDocumentation">
-Circuitbreaker node for nodered.
+Routes incoming messages based on the current state of the linked circuit breaker. Place this node before any integration that may fail.
+
+### Properties
+
+: *name*            (string)               : A descriptive label for this node.
+: *circuit breaker* (Circuit Breaker Config) : The circuit breaker instance to check on each message.
 
 ### Inputs
-: *name*            (string) : An easily idfentifiable name for the circuit breaker.
-: *circuitbreaker*  (Circuit Breaker Config) : the circuit breaker that this node is linked to.
+
+: *msg* (object) : Any message. The content is not inspected - only the breaker state determines routing.
+
+### Outputs
+
+1. **Closed** - the breaker is closed (healthy). The message is forwarded normally for processing.
+2. **Open** - the breaker is tripped. The message is redirected so it can be buffered, dropped, or handled gracefully.
+
+### Status indicator
+
+The node displays a green dot when the breaker is closed and a red dot when it is open. The status updates automatically whenever the breaker state changes.
 </script>

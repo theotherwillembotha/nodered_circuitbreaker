@@ -1,7 +1,7 @@
 import { Node, NodeStatus } from "node-red";
-import { BaseNode, BaseNodeConfig, NodeManager, onInput, SourceUtility, Message, NodeDescription } from "@theotherwillembotha/nodered_plugincore";
-import { Metrics, MetricType, MetricsTemplate, CounterMetric, MetricsTemplateConfig } from "@theotherwillembotha/nodered_plugincore";
-import { Log, Logger, LoggerTemplate, LoggerTemplateConfig } from "@theotherwillembotha/nodered_plugincore";
+import { BaseNode, BaseNodeConfig, NodeManager, onInput, SourceUtility, Message, NodeDescription } from "@theotherwillembotha/node-red-plugincore";
+import { Metrics, MetricType, MetricsTemplate, CounterMetric, MetricsTemplateConfig } from "@theotherwillembotha/node-red-plugincore";
+import { Log, Logger, LoggerTemplate, LoggerTemplateConfig } from "@theotherwillembotha/node-red-plugincore";
 
 import { CircuitBreakerConfigNode, CircuitBreakerEventType } from "./CircuitBreakerConfigNode";
 
@@ -17,7 +17,7 @@ const closedStatus:NodeStatus = {fill:"green", shape:"dot", text:"closed"};
     name:"Circuit Breaker Node",
     group:"circuitbreaker",
     sourceFile:SourceUtility.getSourcePath("/build/", "/src/") + "CircuitBreakerNode.html",
-    package: "@theotherwillembotha/nodered_circuitbreaker",
+    package: "@theotherwillembotha/node-red-circuitbreaker",
     dependencies:[ CircuitBreakerConfigNode ],
     templates : [
         {template:LoggerTemplate, config:{}},

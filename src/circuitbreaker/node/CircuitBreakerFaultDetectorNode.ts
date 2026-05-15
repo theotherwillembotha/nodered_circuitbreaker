@@ -1,7 +1,8 @@
 import { Node } from "node-red";
-import { BaseNode, BaseNodeConfig, NodeManager, SourceUtility, Message, onInput, NodeDescription } from "@theotherwillembotha/nodered_plugincore";
-import { Metrics, MetricType, MetricsTemplate, CounterMetric, MetricsTemplateConfig } from "@theotherwillembotha/nodered_plugincore";
-import { Log, Logger, LoggerTemplate, LoggerTemplateConfig } from "@theotherwillembotha/nodered_plugincore";
+import { BaseNode, BaseNodeConfig, NodeManager, SourceUtility, Message, onInput, NodeDescription } from "@theotherwillembotha/node-red-plugincore";
+import { Metrics, MetricType, MetricsTemplate, CounterMetric, MetricsTemplateConfig } from "@theotherwillembotha/node-red-plugincore";
+import { Log, Logger, LoggerTemplate, LoggerTemplateConfig } from "@theotherwillembotha/node-red-plugincore";
+import { ScriptEditorTemplate } from "@theotherwillembotha/node-red-plugincore";
 
 import { CircuitBreakerConfigNode } from "./CircuitBreakerConfigNode";
 
@@ -16,11 +17,12 @@ export interface CircuitBreakerFaultDetectorNodeConfig extends BaseNodeConfig, M
     name:"Circuit Breaker Fault Detector Node",
     group:"circuitbreaker",
     sourceFile:SourceUtility.getSourcePath("/build/", "/src/") + "CircuitBreakerFaultDetectorNode.html",
-    package: "@theotherwillembotha/nodered_circuitbreaker",
+    package: "@theotherwillembotha/node-red-circuitbreaker",
     dependencies:[ CircuitBreakerConfigNode ],
     templates : [
         {template:LoggerTemplate, config:{}},
         {template:MetricsTemplate, config:{}},
+        {template:ScriptEditorTemplate, config:{}},
     ],
     tags: [ "CircuitBreaker" ]
 })
@@ -43,7 +45,7 @@ export class CircuitBreakerFaultDetectorNode extends BaseNode<CircuitBreakerFaul
         // get a reference to the reolink clients.
         this._configNode = (NodeManager.RED.nodes.getNode(config.circuitbreakerconfig) as any).node();
 
-        this._breakerFaultFunction = new Function('message', config.faultFunction) as (message: any) => boolean;
+        this._breakerFaultFunction = new Function('msg', config.faultFunction) as (msg: any) => boolean;
         this._breakerTripFunction = new Function('breaker', config.tripFunction) as (message: any) => boolean;
     }
 

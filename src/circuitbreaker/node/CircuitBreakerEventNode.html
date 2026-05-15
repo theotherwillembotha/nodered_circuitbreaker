@@ -35,21 +35,31 @@
 
 <script type="text/html" template-section="onIncludeEditForm">
     <div class="form-row">
-        <label for="node-input-name"class="towb_editorlabel" ><i class="fa fa-tag"></i> Name</label>
+        <label for="node-input-name" class="towb_editorlabel"><i class="fa fa-font"></i> Name</label>
         <input type="text" id="node-input-name" />
     </div>
 
     <div class="form-row">
-        <label for="node-input-circuitbreakerconfig"class="towb_editorlabel" ><i class="fa fa-tag"></i>Linked Circuit Breaker</label>
+        <label for="node-input-circuitbreakerconfig" class="towb_editorlabel"><i class="fa fa-bolt"></i> Circuit Breaker</label>
         <input type="text" id="node-input-circuitbreakerconfig" />
     </div>
 </script>
 
 <script type="text/markdown" template-section="onIncludeDocumentation">
-Circuitbreaker Event node for nodered.
+Fires a message whenever the linked circuit breaker changes state. Use this node to trigger notifications, update dashboards, or kick off recovery flows.
+
+### Properties
+
+: *name*            (string)               : A descriptive label for this node.
+: *circuit breaker* (Circuit Breaker Config) : The circuit breaker instance to listen to.
 
 ### Inputs
-: *name*            (string) : An easily idfentifiable name for the circuit breaker.
-: *circuitbreaker*  (Circuit Breaker Config) : the circuit breaker that this node is linked to.
+
+This node has no input; it fires automatically in response to breaker state changes.
+
+### Outputs
+
+1. **Trip** - fires when the breaker is tripped (opened). The message is `{ state: "Trip" }`.
+2. **Reset** - fires when the breaker is reset (closed). The message is `{ state: "Reset" }`.
 </script>
 

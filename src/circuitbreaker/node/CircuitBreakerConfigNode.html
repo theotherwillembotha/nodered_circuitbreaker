@@ -1,9 +1,9 @@
 
 <script type="text/javascript" template-section="onCompose">
     node
-        .addDefault("name", { value:"CircuitBeaker Config Example", required:true})
-        .addDefault("defaultOpen", {type:"boolean", required:true})
-        .setPaletteLabel("CircuitBeaker Config Node")
+        .addDefault("name", { value:"Circuit Breaker Config Example", required:true})
+        .addDefault("defaultState", { value:"Closed", required:true})
+        .setPaletteLabel("Circuit Breaker Config")
         .setLabel(function() {return this.name })
 </script>
 
@@ -19,6 +19,17 @@
 <script type="text/javascript" template-section="onIncludeEditPrepare">
 {
     let node = this;
+
+    $("#node-config-input-defaultState").typedInput({
+        type: "defaultState",
+        types: [{
+            value: "defaultState",
+            options: [
+                { value: "Closed", label: "Closed" },
+                { value: "Open",   label: "Open"   }
+            ]
+        }]
+    });
 }
 </script>
 
@@ -31,19 +42,26 @@
 
 <script type="text/html" template-section="onIncludeEditForm">
     <div class="form-row">
-        <label for="{{defaults.name}}"><i class="fa fa-tag"></i> Name</label>
+        <label for="node-config-input-name" class="towb_editorlabel"><i class="fa fa-font"></i> Name</label>
         <input type="text" id="node-config-input-name" />
     </div>
 
     <div class="form-row">
-        <input type="checkbox" id="node-config-input-defaultOpen" style="margin:8px 0 10px 102px; width:20px;" />
-        <label style="width:auto" for="node-config-input-defaultOpen"><span>Open on Startup</span></label>
+        <label for="node-config-input-defaultState" class="towb_editorlabel"><i class="fa fa-power-off"></i> Default State</label>
+        <input type="text" id="node-config-input-defaultState" />
     </div>
 
 </script>
 
 <script type="text/markdown" template-section="onIncludeDocumentation">
-Configuration node for Circuit Breaker Integration
+Shared state node for a circuit breaker instance. All Circuit Breaker nodes that should operate on the same breaker must reference the same config node.
 
+### Properties
 
+: *name*          (string) : A descriptive label for this circuit breaker instance.
+: *default state* (select) : The state the breaker starts in when Node-RED deploys. **Closed** (default) - messages flow normally. **Open** - the breaker starts tripped.
+
+### Breaker context
+
+Each config node holds a key/value context store (`BreakerContext`) that is accessible from Fault Detector and State scripts. Use `breaker.context().get(key, default)` and `breaker.context().set(key, value)` to store state between messages - for example to maintain a rolling failure window.
 </script>

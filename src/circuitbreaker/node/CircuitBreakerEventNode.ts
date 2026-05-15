@@ -1,7 +1,7 @@
 import { Node } from "node-red";
-import { BaseNode, BaseNodeConfig, NodeDescription, NodeManager, SourceUtility } from "@theotherwillembotha/nodered_plugincore";
-import { Metrics, MetricType, MetricsTemplate, CounterMetric, MetricsTemplateConfig } from "@theotherwillembotha/nodered_plugincore";
-import { Log, Logger, LoggerTemplate, LoggerTemplateConfig } from "@theotherwillembotha/nodered_plugincore";
+import { BaseNode, BaseNodeConfig, NodeDescription, NodeManager, SourceUtility } from "@theotherwillembotha/node-red-plugincore";
+import { Metrics, MetricType, MetricsTemplate, CounterMetric, MetricsTemplateConfig } from "@theotherwillembotha/node-red-plugincore";
+import { Log, Logger, LoggerTemplate, LoggerTemplateConfig } from "@theotherwillembotha/node-red-plugincore";
 
 import { CircuitBreakerConfigNode, CircuitBreakerEventListener, CircuitBreakerEventType } from "./CircuitBreakerConfigNode";
 
@@ -14,7 +14,7 @@ export interface CircuitBreakerEventNodeConfig extends BaseNodeConfig, MetricsTe
     name:"Circuit Breaker Event Node",
     group:"circuitbreaker",
     sourceFile:SourceUtility.getSourcePath("/build/", "/src/") + "CircuitBreakerEventNode.html",
-    package: "@theotherwillembotha/nodered_circuitbreaker",
+    package: "@theotherwillembotha/node-red-circuitbreaker",
     dependencies:[ CircuitBreakerConfigNode ],
     templates : [
         {template:LoggerTemplate, config:{}},

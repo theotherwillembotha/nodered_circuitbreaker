@@ -1,77 +1,11 @@
 
 
 <div template-section="onIncludeOnce">
-    <script src="resources/@theotherwillembotha/nodered_circuitbreaker/editorLanguageExtension.js"></script>
     <style>
         .node_label_white {
             fill:white
         }
     </style>
-
-    <script type="text/javascript">
-        let scriptTemplate = `
-            /**
-             * Represents the message object that is passed into this node.
-             */
-            interface Message {
-                [key:string]:any;
-            }
-
-            enum BreakerState {
-                Open = "Open",
-                Closed = "Closed"
-            }
-        
-            /**
-             * Represents the breaker object that this fault is linked to.
-             */
-            interface Breaker {
-                /**
-                 * Get the context that is attached to the breaker.
-                 * @returns the attached breaker context.
-                 */
-                context():BreakerContext;
-
-                /**
-                 * returns the state of the breaker
-                 * @returns the state of the breaker.
-                 */
-                state():BreakerState;
-                isOpen():boolean;
-                isClosed():boolean;
-                reset():boolean;
-                trip():boolean;
-            }
-
-            /**
-             *  Represents a context on the breaker where properties can be set or removed. 
-             */
-            interface BreakerContext {
-                /**
-                 * Gets a particular context value from the BreakerContext.
-                 * @param id - The id of the property to retrieve.
-                 * @param defaultValue - The optional default for te context property if it does not exist.
-                 * @returns a value if it exists, or undefiend otherwise.
-                 */
-                get<T>(id:string, defaultValue?:T): T;
-
-                /**
-                 * Sets a particular context value in the BreakerContext.
-                 * @param id - The id of the property to set.
-                 * @param value - The default for te context property if it does not exist.
-                 * @returns the value that has just been set to the id.
-                 */
-                set<T>(id:string, value:T): T;
-            }
-
-            async function(breaker:Breaker, message:Message) {
-            \${script}
-            }
-        `;
-
-        let scriptLanguage = ScriptEditorLanguageManager.createLanguage(monaco, scriptTemplate);
-
-    </script>
 </div>
 
 <script type="text/javascript" template-section="onCompose">
@@ -115,14 +49,71 @@
     nodeAction.on('change', () => selectActionType(nodeAction.val()));
     selectActionType(nodeAction.val());
 
-    scriptLanguage.then(language => {
-        node.scriptEditor = monaco.editor.create(document.getElementById('node-input-script-editor'), {
-            value: (node.script === undefined) ? "console.log(message, breaker)" :node.script,
-            language: language.getName(),
-            automaticLayout: true,
-            wordBasedSuggestions: "currentDocument",
-        });
-    })
+    let scriptTemplate = `
+        /**
+         * Represents the message object that is passed into this node.
+         */
+        interface Message {
+            [key:string]:any;
+        }
+
+        enum BreakerState {
+            Open = "Open",
+            Closed = "Closed"
+        }
+
+        /**
+         * Represents the breaker object that this fault is linked to.
+         */
+        interface Breaker {
+            /**
+             * Get the context that is attached to the breaker.
+             * @returns the attached breaker context.
+             */
+            context():BreakerContext;
+
+            /**
+             * Returns the state of the breaker.
+             * @returns the state of the breaker.
+             */
+            state():BreakerState;
+            isOpen():boolean;
+            isClosed():boolean;
+            reset():boolean;
+            trip():boolean;
+        }
+
+        /**
+         * Represents a context on the breaker where properties can be set or removed.
+         */
+        interface BreakerContext {
+            /**
+             * Gets a particular context value from the BreakerContext.
+             * @param id - The id of the property to retrieve.
+             * @param defaultValue - The optional default for the context property if it does not exist.
+             * @returns a value if it exists, or undefined otherwise.
+             */
+            get<T>(id:string, defaultValue?:T): T;
+
+            /**
+             * Sets a particular context value in the BreakerContext.
+             * @param id - The id of the property to set.
+             * @param value - The value to assign to the context property.
+             * @returns the value that has just been set.
+             */
+            set<T>(id:string, value:T): T;
+        }
+
+        async function(breaker:Breaker, message:Message) {
+        \${script}
+        }
+    `;
+
+    node.scriptEditor = PluginCore.createScriptEditor(
+        'node-input-script-editor',
+        scriptTemplate,
+        node.script !== undefined ? node.script : 'console.log(message, breaker)'
+    );
 }
 </script>
 
@@ -137,39 +128,66 @@
 <script type="text/javascript" template-section="IncludeEditCancel">
 {
     let node = this;
+    node.scriptEditor.dispose();
     delete node.scriptEditor;
 }
 </script>
 
 <script type="text/html" template-section="onIncludeEditForm">
     <div class="form-row">
-        <label for="node-input-name"class="towb_editorlabel" ><i class="fa fa-tag"></i> Name</label>
+        <label for="node-input-name" class="towb_editorlabel"><i class="fa fa-font"></i> Name</label>
         <input type="text" id="node-input-name" />
     </div>
 
     <div class="form-row">
-        <label for="node-input-circuitbreakerconfig"class="towb_editorlabel" ><i class="fa fa-tag"></i>Linked Circuit Breaker</label>
+        <label for="node-input-circuitbreakerconfig" class="towb_editorlabel"><i class="fa fa-bolt"></i> Circuit Breaker</label>
         <input type="text" id="node-input-circuitbreakerconfig" />
     </div>
 
     <div class="form-row">
-        <label for="node-input-action"><i class="fa fa-tag"></i> On Message</label>
+        <label for="node-input-action" class="towb_editorlabel"><i class="fa fa-play"></i> On Message</label>
         <input type="text" id="node-input-action" />
     </div>
 
     <div id="CircuitBreakerStateScript">
         <div class="form-row">
-            <label for="node-input-script-editor" class="towb_editorlabel" ><i class="fa fa-tag"></i>Script Action</label>
-            <div style="height: 200px;" class="node-text-editor" id="node-input-script-editor"></div>
+            <label for="node-input-script-editor" class="towb_editorlabel"><i class="fa fa-code"></i> Script Action</label>
+            <div style="height: 200px; min-height: 80px; resize: vertical; overflow: auto;" class="node-text-editor" id="node-input-script-editor"></div>
         </div>
     </div>
 </script>
 
 <script type="text/markdown" template-section="onIncludeDocumentation">
-Circuitbreaker State node for nodered.
+Manually controls the state of a circuit breaker when a message arrives. Use this to build recovery flows, health-check driven resets, or manual override controls.
+
+### Properties
+
+: *name*            (string)               : A descriptive label for this node.
+: *circuit breaker* (Circuit Breaker Config) : The circuit breaker instance to control.
+: *on message*      (action)               : The action to perform when a message is received: **Reset**, **Trip**, or **Script**.
+
+### Actions
+
+**Reset** - closes the breaker, allowing messages to flow through Circuit Breaker nodes again.
+
+**Trip** - opens the breaker, diverting messages to the open output of Circuit Breaker nodes.
+
+**Script** - runs a custom script that receives the full breaker API and the incoming message. Use this for conditional or gradual recovery logic.
+
+```javascript
+// Example: reset only if the breaker has been open for at least 30 seconds
+let trippedAt = breaker.context().get("trippedAt", 0);
+if (new Date().getTime() - trippedAt > 30000) {
+    breaker.reset();
+}
+```
 
 ### Inputs
-: *name*            (string) : An easily idfentifiable name for the circuit breaker.
-: *circuitbreaker*  (Circuit Breaker Config) : the circuit breaker that this node is linked to.
+
+: *msg* (object) : Any message. Triggers the configured action on the linked breaker.
+
+### Outputs
+
+: *msg* (object) : The original message, forwarded after the action has been applied.
 </script>
 

@@ -1,10 +1,15 @@
 
 import { Node } from "node-red";
-import { ConfigNode, ConfigNodeConfig, NodeDescription, SourceUtility } from "@theotherwillembotha/nodered_plugincore";
+import { ConfigNode, ConfigNodeConfig, NodeDescription, SourceUtility } from "@theotherwillembotha/node-red-plugincore";
 
+
+export enum CircuitBreakerDefaultState {
+    Closed = "Closed",
+    Open   = "Open"
+}
 
 export interface CircuitBreakerConfigNodeConfig extends ConfigNodeConfig {
-    defaultOpen:boolean;
+    defaultState: CircuitBreakerDefaultState;
 }
 
 @NodeDescription({
@@ -12,7 +17,7 @@ export interface CircuitBreakerConfigNodeConfig extends ConfigNodeConfig {
     name:"Circuit Breaker Config Node",
     group:"config",
     sourceFile:SourceUtility.getSourcePath("/build/", "/src/") + "CircuitBreakerConfigNode.html",
-    package: "@theotherwillembotha/nodered_circuitbreaker",
+    package: "@theotherwillembotha/node-red-circuitbreaker",
     tags: [ "CircuitBreaker" ]
 })
 export class CircuitBreakerConfigNode extends ConfigNode<CircuitBreakerConfigNodeConfig> {
@@ -24,7 +29,7 @@ export class CircuitBreakerConfigNode extends ConfigNode<CircuitBreakerConfigNod
     constructor(node: Node, config: CircuitBreakerConfigNodeConfig){
         super(node, config);
 
-        this._open = !!config.defaultOpen;
+        this._open = config.defaultState === CircuitBreakerDefaultState.Open;
     }
 
     public isOpen():boolean{

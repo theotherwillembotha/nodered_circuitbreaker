@@ -1,4 +1,4 @@
-import { NodeGenerator } from "@theotherwillembotha/nodered_plugincore"
+import { NodeGenerator } from "@theotherwillembotha/node-red-plugincore"
 
 // services.
 
