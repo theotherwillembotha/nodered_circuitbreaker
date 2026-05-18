@@ -4,6 +4,17 @@ Circuit Breaker nodes for Node-RED with configurable fault detection, trip condi
 
 ---
 
+> [!IMPORTANT]
+> **This plugin requires [`@theotherwillembotha/node-red-plugincore`](https://github.com/theotherwillembotha/nodered_plugincore) to be installed.**
+>
+> `node-red-plugincore` is declared as a dependency and npm will install it automatically alongside this package. However, due to a [known Node-RED limitation](https://github.com/node-red/node-red/issues/3529), packages that arrive as transitive npm dependencies are only discovered by the Node-RED runtime on the **next startup**.
+>
+> **You have two options:**
+> - Install [`@theotherwillembotha/node-red-plugincore`](https://flows.nodered.org/node/@theotherwillembotha/node-red-plugincore) via the palette manager or `npm install` **first**, then install this plugin — both will be available immediately without a restart.
+> - Install this plugin directly — `node-red-plugincore` will be installed automatically alongside it. **Restart Node-RED** once and both packages will be fully loaded.
+
+---
+
 ## What is a Circuit Breaker?
 
 A circuit breaker is a resilience pattern that protects high-volume flows from cascading failures. When an external dependency (an HTTP endpoint, a database, a third-party service) starts failing, a circuit breaker can detect the fault, stop sending requests to the failing system, and give it time to recover, rather than hammering it with traffic and making the situation worse.
