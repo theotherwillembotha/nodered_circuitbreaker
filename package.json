@@ -1,6 +1,6 @@
 {
   "name": "@theotherwillembotha/node-red-circuitbreaker",
-  "version": "0.0.55",
+  "version": "0.1.0",
   "description": "Circuit Breaker nodes for Node-RED with configurable fault detection, trip conditions, and state management.",
   "main": "./build/index.js",
   "exports": "./build/index.js",
@@ -40,7 +40,7 @@
     "nodered": ">=4.0.0"
   },
   "dependencies": {
-    "@theotherwillembotha/node-red-plugincore": "^0.0.55"
+    "@theotherwillembotha/node-red-plugincore": "^0.1.0"
   },
   "devDependencies": {
     "@theotherwillembotha/node-red-plugincore": "../nodered_plugincore",
