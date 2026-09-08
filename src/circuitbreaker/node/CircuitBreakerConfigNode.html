@@ -36,7 +36,6 @@
 <script type="text/javascript" template-section="onIncludeEditSave">
 {
     let node = this;
-
 }
 </script>
 
@@ -59,9 +58,15 @@ Shared state node for a circuit breaker instance. All Circuit Breaker nodes that
 ### Properties
 
 : *name*          (string) : A descriptive label for this circuit breaker instance.
-: *default state* (select) : The state the breaker starts in when Node-RED deploys. **Closed** (default) - messages flow normally. **Open** - the breaker starts tripped.
+: *default state* (select) : The state the breaker starts in on a fresh deploy. **Closed** (default) — messages flow normally. **Open** — the breaker starts tripped. If a state provider is configured and has a persisted value, that value takes precedence over this setting.
+
+### State Provider
+
+Select a state provider in the **State** section to persist the breaker's open/closed status. On startup, the persisted state is read from the provider; if none is stored yet, the **Default State** above is used and written back to the provider.
+
+Use an **Internal State Config Node** with *Survives Redeploy* to keep the breaker's last state across flow redeployments, or *Survives Restart* to persist it across process restarts.
 
 ### Breaker context
 
-Each config node holds a key/value context store (`BreakerContext`) that is accessible from Fault Detector and State scripts. Use `breaker.context().get(key, default)` and `breaker.context().set(key, value)` to store state between messages - for example to maintain a rolling failure window.
+Each config node holds a key/value context store (`BreakerContext`) that is accessible from Fault Detector and State scripts. Use `breaker.context().get(key, default)` and `breaker.context().set(key, value)` to store state between messages — for example to maintain a rolling failure window.
 </script>

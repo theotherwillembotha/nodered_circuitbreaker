@@ -1,7 +1,11 @@
-import { NodeGenerator } from "@theotherwillembotha/node-red-plugincore"
-
-// services.
-
+import { NodeGenerator } from "@theotherwillembotha/node-red-plugincore";
+import {
+    LoggerService, MetricsService, NodeTypeService, SettingsService, StateService,
+    DelegatedConfigReferenceNode,
+    ConsoleLoggerConfigNode, RestLoggerConfigNode,
+    CounterMetricConfigNode, GaugeMetricConfigNode, TimerMetricConfigNode,
+    InternalStateConfigNode,
+} from "@theotherwillembotha/node-red-plugincore";
 
 // nodes.
 import { CircuitBreakerConfigNode } from "./circuitbreaker/node/CircuitBreakerConfigNode";
@@ -10,17 +14,28 @@ import { CircuitBreakerFaultDetectorNode } from "./circuitbreaker/node/CircuitBr
 import { CircuitBreakerEventNode } from "./circuitbreaker/node/CircuitBreakerEventNode";
 import { CircuitBreakerStateNode } from "./circuitbreaker/node/CircuitBreakerStateNode";
 
-new NodeGenerator("./src/")
-    // services.
+new NodeGenerator("./src/circuitbreaker/")
+    // infrastructure (required — deduplication guards make this safe)
+    .registerService(LoggerService)
+    .registerService(MetricsService)
+    .registerService(NodeTypeService)
+    .registerService(SettingsService)
+    .registerService(StateService)
+    .registerNode(DelegatedConfigReferenceNode)
+    .registerNode(ConsoleLoggerConfigNode)
+    .registerNode(RestLoggerConfigNode)
+    .registerNode(CounterMetricConfigNode)
+    .registerNode(GaugeMetricConfigNode)
+    .registerNode(TimerMetricConfigNode)
+    .registerNode(InternalStateConfigNode)
 
-    // nodes
+    // circuit breaker nodes
     .registerNode(CircuitBreakerConfigNode)
     .registerNode(CircuitBreakerNode)
     .registerNode(CircuitBreakerFaultDetectorNode)
     .registerNode(CircuitBreakerEventNode)
     .registerNode(CircuitBreakerStateNode)
 
-    // done.
     .generate("./build/Nodes", "./build/Plugins");
 
 process.exit(0);

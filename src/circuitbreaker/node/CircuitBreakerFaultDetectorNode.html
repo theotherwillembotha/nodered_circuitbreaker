@@ -3,7 +3,6 @@
 <script type="text/javascript" template-section="onCompose">
 
     let sampleFaultFunction = function(message){
-        console.log(message.statusCode)
         return (message.statusCode === undefined || mesasge.statusCode > 400);
     };
 

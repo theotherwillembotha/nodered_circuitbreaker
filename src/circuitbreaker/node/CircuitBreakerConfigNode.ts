@@ -1,6 +1,7 @@
 
 import { Node } from "node-red";
 import { ConfigNode, ConfigNodeConfig, NodeDescription, SourceUtility } from "@theotherwillembotha/node-red-plugincore";
+import { StateService, StateHandle, StateTemplate, StateTemplateConfig } from "@theotherwillembotha/node-red-plugincore";
 
 
 export enum CircuitBreakerDefaultState {
@@ -8,7 +9,7 @@ export enum CircuitBreakerDefaultState {
     Open   = "Open"
 }
 
-export interface CircuitBreakerConfigNodeConfig extends ConfigNodeConfig {
+export interface CircuitBreakerConfigNodeConfig extends ConfigNodeConfig, StateTemplateConfig {
     defaultState: CircuitBreakerDefaultState;
 }
 
@@ -18,6 +19,18 @@ export interface CircuitBreakerConfigNodeConfig extends ConfigNodeConfig {
     group:"config",
     sourceFile:SourceUtility.getSourcePath("/build/", "/src/") + "CircuitBreakerConfigNode.html",
     package: "@theotherwillembotha/node-red-circuitbreaker",
+    templates: [
+        { template: StateTemplate, config: {
+            nameSuffix: '-State',
+            defaultStates: [
+                {key:"Closed", value:"Closed", canEdit:true, canRemove:false},
+                {key:"Open", value:"Open", canEdit:true, canRemove:false}
+            ],
+            minStates:2, 
+            maxStates:2,
+            canAdd:false
+        }}
+    ],
     tags: [ "CircuitBreaker" ]
 })
 export class CircuitBreakerConfigNode extends ConfigNode<CircuitBreakerConfigNodeConfig> {
@@ -25,11 +38,45 @@ export class CircuitBreakerConfigNode extends ConfigNode<CircuitBreakerConfigNod
     private _open: boolean;
     private _eventListeners:((event:CircuitBreakerEvent) => void)[] = [];
     private _context: BreakerContext = new BreakerContext();
+    private _stateHandle: StateHandle;
 
     constructor(node: Node, config: CircuitBreakerConfigNodeConfig){
         super(node, config);
 
         this._open = config.defaultState === CircuitBreakerDefaultState.Open;
+        this._stateHandle = StateService.createHandle(config.stateReference);
+
+        // Restore persisted state if the provider has a stored value.
+        // If nothing is stored yet, seed the provider with this breaker's default state.
+        this._stateHandle.get().then(persistedState => {
+            if (persistedState === null) {
+                this._stateHandle.set(config.defaultState ?? CircuitBreakerDefaultState.Closed);
+            } else {
+                const wasOpen = this._open;
+                this._open = persistedState === CircuitBreakerDefaultState.Open;
+                if (this._open !== wasOpen) {
+                    this._eventListeners.forEach(l => l({
+                        state: this._open ? CircuitBreakerEventType.Trip : CircuitBreakerEventType.Reset
+                    }));
+                }
+            }
+        });
+
+        // Subscribe to externally-driven state changes (e.g. a third party writing to the ZNode).
+        this._stateHandle.subscribe((externalState) => {
+            const wasOpen = this._open;
+            this._open = externalState === CircuitBreakerDefaultState.Open;
+            if (this._open !== wasOpen) {
+                this._eventListeners.forEach(l => l({
+                    state: this._open ? CircuitBreakerEventType.Trip : CircuitBreakerEventType.Reset
+                }));
+            }
+        });
+
+        // Clean up the state subscription when this node is undeployed.
+        node.on('close', () => {
+            this._stateHandle.unsubscribe();
+        });
     }
 
     public isOpen():boolean{
@@ -38,6 +85,7 @@ export class CircuitBreakerConfigNode extends ConfigNode<CircuitBreakerConfigNod
 
     public trip():void{
         this._open = true;
+        this._stateHandle.set(CircuitBreakerDefaultState.Open);
         let event = {
             state: CircuitBreakerEventType.Trip
         };
@@ -46,6 +94,7 @@ export class CircuitBreakerConfigNode extends ConfigNode<CircuitBreakerConfigNod
 
     public reset():void{
         this._open = false;
+        this._stateHandle.set(CircuitBreakerDefaultState.Closed);
         let event = {
             state: CircuitBreakerEventType.Reset
         };
