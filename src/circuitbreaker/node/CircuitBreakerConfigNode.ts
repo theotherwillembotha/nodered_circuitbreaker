@@ -109,7 +109,7 @@ export class CircuitBreakerConfigNode extends ConfigNode<CircuitBreakerConfigNod
     public removeEventListener(listener: CircuitBreakerEventListener):void {
         let index = this._eventListeners.indexOf(listener as ((event:CircuitBreakerEvent) => void));
         if(index >= 0){
-            this._eventListeners = this._eventListeners.splice(index, 1);
+            this._eventListeners.splice(index, 1);
         }
     }
 
