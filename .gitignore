@@ -142,3 +142,5 @@ vite.config.ts.timestamp-*
 build/
 package-lock.json
 autoComplete.json
+
+guide/*
