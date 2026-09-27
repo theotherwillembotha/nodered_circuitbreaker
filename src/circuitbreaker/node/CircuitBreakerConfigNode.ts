@@ -2,6 +2,7 @@
 import { Node } from "node-red";
 import { ConfigNode, ConfigNodeConfig, NodeDescription, SourceUtility } from "@theotherwillembotha/node-red-plugincore";
 import { StateService, StateHandle, StateTemplate, StateTemplateConfig } from "@theotherwillembotha/node-red-plugincore";
+import { ConfigFragmentTemplate } from "@theotherwillembotha/node-red-plugincore";
 
 
 export enum CircuitBreakerDefaultState {
@@ -26,10 +27,11 @@ export interface CircuitBreakerConfigNodeConfig extends ConfigNodeConfig, StateT
                 {key:"Closed", value:"Closed", canEdit:true, canRemove:false},
                 {key:"Open", value:"Open", canEdit:true, canRemove:false}
             ],
-            minStates:2, 
+            minStates:2,
             maxStates:2,
             canAdd:false
-        }}
+        }},
+        { template: ConfigFragmentTemplate, config: { sectionType: "StateConfig", observe: "#state-selector", showBorder: true } }
     ],
     tags: [ "CircuitBreaker" ]
 })
@@ -44,7 +46,11 @@ export class CircuitBreakerConfigNode extends ConfigNode<CircuitBreakerConfigNod
         super(node, config);
 
         this._open = config.defaultState === CircuitBreakerDefaultState.Open;
-        this._stateHandle = StateService.createHandle(config.stateReference);
+        this._stateHandle = StateService.createHandleFromRef(
+            config.stateReference,
+            config.providerConfig || {},
+            config.id
+        );
 
         // Restore persisted state if the provider has a stored value.
         // If nothing is stored yet, seed the provider with this breaker's default state.
